@@ -448,14 +448,14 @@ void pathtrace(uchar4 *pbo, const SceneOptions& sceneOptions, int iter)
 
 		// TODO: compare between directly shading the path segments and shading
 		// path segments that have been reshuffled to be contiguous in memory.
-		/*if (sceneOptions.sortPathsByMaterial)
+		if (sceneOptions.sortPathsByMaterial)
 		{
 			thrust::device_vector<PathSegment> dv_in_paths(dev_paths, dev_paths + num_paths);
 			thrust::stable_sort(dv_in_paths.begin(), dv_in_paths.end(), SortByMaterialId(dev_intersections));
 
 			thrust::device_vector<ShadeableIntersection> dv_in_intersects(dev_intersections, dev_intersections + num_paths);
 			thrust::stable_sort(dv_in_intersects.begin(), dv_in_intersects.end(), SortByMaterialId(dev_intersections));
-		}*/
+		}
 
 		shadeScene << <numblocksPathSegmentTracing, blockSize1d >> > (
 			iter,
@@ -474,6 +474,10 @@ void pathtrace(uchar4 *pbo, const SceneOptions& sceneOptions, int iter)
 			num_paths = std::distance(dev_paths, dev_path_end);
 		}
 		depth++;
+		if (depth >= traceDepth)
+		{
+			iterationComplete = true;
+		}
 	}
 	Timer::pauseTimer();
   // Assemble this iteration and apply it to the image
