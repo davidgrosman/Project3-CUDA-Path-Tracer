@@ -96,7 +96,7 @@ int Scene::loadCamera() {
     float fovy;
 
     //load static properties
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 10; i++) {
         string line;
         utilityCore::safeGetline(fp_in, line);
         vector<string> tokens = utilityCore::tokenizeString(line);
@@ -111,21 +111,23 @@ int Scene::loadCamera() {
             state.traceDepth = atoi(tokens[1].c_str());
         } else if (strcmp(tokens[0].c_str(), "FILE") == 0) {
             state.imageName = tokens[1];
-        }
+		} else if (strcmp(tokens[0].c_str(), "EYE") == 0) {
+			camera.position = glm::vec3(atof(tokens[1].c_str()), atof(tokens[2].c_str()), atof(tokens[3].c_str()));
+		} else if (strcmp(tokens[0].c_str(), "LOOKAT") == 0) {
+			camera.lookAt = glm::vec3(atof(tokens[1].c_str()), atof(tokens[2].c_str()), atof(tokens[3].c_str()));
+		} else if (strcmp(tokens[0].c_str(), "UP") == 0) {
+			camera.up = glm::vec3(atof(tokens[1].c_str()), atof(tokens[2].c_str()), atof(tokens[3].c_str()));
+		} else if (strcmp(tokens[0].c_str(), "FOCAL_LENGTH") == 0) {
+			camera.focalLength = atof(tokens[1].c_str());
+		} else if (strcmp(tokens[0].c_str(), "LENS_RADIUS") == 0) {
+			camera.lensRadius = atof(tokens[1].c_str());
+		}
     }
 
     string line;
     utilityCore::safeGetline(fp_in, line);
     while (!line.empty() && fp_in.good()) {
         vector<string> tokens = utilityCore::tokenizeString(line);
-        if (strcmp(tokens[0].c_str(), "EYE") == 0) {
-            camera.position = glm::vec3(atof(tokens[1].c_str()), atof(tokens[2].c_str()), atof(tokens[3].c_str()));
-        } else if (strcmp(tokens[0].c_str(), "LOOKAT") == 0) {
-            camera.lookAt = glm::vec3(atof(tokens[1].c_str()), atof(tokens[2].c_str()), atof(tokens[3].c_str()));
-        } else if (strcmp(tokens[0].c_str(), "UP") == 0) {
-            camera.up = glm::vec3(atof(tokens[1].c_str()), atof(tokens[2].c_str()), atof(tokens[3].c_str()));
-        }
-
         utilityCore::safeGetline(fp_in, line);
     }
 

@@ -49,9 +49,12 @@ struct Camera {
     glm::vec3 right;
     glm::vec2 fov;
     glm::vec2 pixelLength;
+		float focalLength;
+		float lensRadius;
 };
 
-struct RenderState {
+struct RenderState
+{
     Camera camera;
     unsigned int iterations;
     int traceDepth;
@@ -59,18 +62,30 @@ struct RenderState {
     std::string imageName;
 };
 
-struct PathSegment {
+struct SceneOptions
+{
+	SceneOptions() : sortPathsByMaterial(true), iterToCacheFirstBounces(1)
+	{}
+	bool sortPathsByMaterial;
+	bool iterToCacheFirstBounces;
+};
+
+struct PathSegment
+{
 	Ray ray;
 	glm::vec3 color;
 	int pixelIndex;
 	int remainingBounces;
+	int intersectionIndex;
 };
 
 // Use with a corresponding PathSegment to do:
 // 1) color contribution computation
 // 2) BSDF evaluation: generate a new ray
-struct ShadeableIntersection {
-  float t;
+struct ShadeableIntersection 
+{
+  glm::vec3 intersectionPoint;
   glm::vec3 surfaceNormal;
   int materialId;
+  float t;
 };

@@ -15,6 +15,8 @@ set(SOURCE_FILES
     "preview.cpp"
     "utilities.cpp"
     "utilities.h"
+    "timer.cu"
+    "timer.h"
     )
 
 cuda_add_library(src

@@ -1,6 +1,9 @@
 #include "main.h"
 #include "preview.h"
+#include "timer.h"
 #include <cstring>
+
+#include "utilities.h"
 
 static std::string startTimeString;
 
@@ -20,17 +23,25 @@ glm::vec3 cameraPosition;
 glm::vec3 ogLookAt; // for recentering the camera
 
 Scene *scene;
+SceneOptions sceneOptions;
 RenderState *renderState;
 int iteration;
 
 int width;
 int height;
 
+
+
+
+//-------------------------------
+//-------------------------------
+
 //-------------------------------
 //-------------MAIN--------------
 //-------------------------------
 
-int main(int argc, char** argv) {
+int main(int argc, char** argv) 
+{
     startTimeString = currentTimeString();
 
     if (argc < 2) {
@@ -68,10 +79,12 @@ int main(int argc, char** argv) {
 
     // Initialize CUDA and GL components
     init();
+	Timer::initializeTimer();
 
     // GLFW main loop
     mainLoop();
-
+	
+	PRNGenerator::shutdownSystem();
     return 0;
 }
 
@@ -122,9 +135,13 @@ void runCuda() {
     // Map OpenGL buffer object for writing from CUDA on a single GPU
     // No data is moved (Win & Linux). When mapped to CUDA, OpenGL should not use this buffer
 
-    if (iteration == 0) {
+    if (iteration == 0) 
+	{
         pathtraceFree();
         pathtraceInit(scene);
+
+		const int NUM_RANDOM_SIZE = 1 << 20;
+		PRNGenerator::initializeSystem(PRNGenerator::Thrust, NUM_RANDOM_SIZE);
     }
 
     if (iteration < renderState->iterations) {
@@ -132,9 +149,10 @@ void runCuda() {
         iteration++;
         cudaGLMapBufferObject((void**)&pbo_dptr, pbo);
 
+		Timer::resetTimer(true);
         // execute the kernel
-        int frame = 0;
-        pathtrace(pbo_dptr, frame, iteration);
+        pathtrace(pbo_dptr, sceneOptions, iteration);
+		Timer::printTimer(NULL, 1.0f);
 
         // unmap buffer object
         cudaGLUnmapBufferObject(pbo);
@@ -156,6 +174,12 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
       case GLFW_KEY_S:
         saveImage();
         break;
+	  case GLFW_KEY_M:
+		  sceneOptions.sortPathsByMaterial = !sceneOptions.sortPathsByMaterial;
+		  break;
+	  case GLFW_KEY_C:
+		  sceneOptions.iterToCacheFirstBounces = iteration + 1;
+		  break;
       case GLFW_KEY_SPACE:
         camchanged = true;
         renderState = &scene->state;

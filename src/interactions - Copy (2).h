@@ -1,6 +1,5 @@
 #pragma once
 
-#include "timer.h"
 #include "intersections.h"
 
 // CHECKITOUT
@@ -10,11 +9,12 @@
 */
 __host__ __device__
 glm::vec3 computeDiffuseDirection(
-glm::vec3& normal, PRNG& rng) {
+glm::vec3& normal, thrust::default_random_engine &rng) {
+	thrust::uniform_real_distribution<float> u01(0, 1);
 
-	float up = sqrt( rng.getNextVal01() ); // cos(theta)
+	float up = sqrt(u01(rng)); // cos(theta)
 	float over = sqrt(1 - up * up); // sin(theta)
-	float around = rng.getNextVal01() * TWO_PI;
+	float around = u01(rng) * TWO_PI;
 
 	// Find a direction that is not the normal based off of whether or not the
 	// normal's components are all equal to sqrt(1/3) or whether or not at
@@ -70,11 +70,9 @@ float computeReflectance(
 const glm::vec3& normal, const glm::vec3& incident,
 const float ni, const float nt)
 {
-	// According to Schlick's model, the specular reflection
-	// coefficient R can be approximated by
 	const float cosI = -glm::dot(normal, incident);
-	const float sqrtR0 = (ni - nt) / (ni + nt);
-	const float R0 = sqrtR0 * sqrtR0;
+	float R0 = (ni - nt) / (ni + nt);
+	R0 *= R0;
 	return R0 + (1 - R0) * powf(1 - cosI, 5);
 }
 
@@ -109,7 +107,7 @@ PathSegment & pathSegment,
 glm::vec3 intersect,
 glm::vec3 normal,
 const Material &m,
-PRNG& rng)
+thrust::default_random_engine &rng)
 {
 	const float MY_EPSILON = 1e-3f;
 
@@ -119,11 +117,11 @@ PRNG& rng)
 	const bool isInwardsRay = (glm::dot(normal, outRay.direction) < 0.0f);
 	const float pathDir = isInwardsRay ? 1 : -1;
 
-	outRay.origin = intersect + pathDir * normal * MY_EPSILON;
 	if (!m.hasReflective && !m.hasRefractive) // Diffuse
 	{
 		outRay.direction = computeDiffuseDirection(normal, rng);
 		outColor *= glm::abs(glm::dot(outRay.direction, normal)) * m.color;
+		outRay.origin = intersect + pathDir * normal * MY_EPSILON;
 	}
 	else
 	{
@@ -146,13 +144,48 @@ PRNG& rng)
 		{
 			outRay.direction = glm::reflect(pathSegment.ray.direction, normal);
 			outColor *= reflectance* m.color;
-			
+			outRay.origin = intersect + pathDir * normal * MY_EPSILON;
 		}
 		else if (m.hasRefractive)
 		{
 			outRay.direction = computeRefractiveDirection(normal, pathSegment.ray.direction, ni, nt);
 			outColor *= (1.0f - reflectance) * m.color;
 			outRay.origin = intersect - pathDir * normal * MY_EPSILON;
+			//printf("(%f,%f,%f)", outColor.r, outColor.g, outColor.b);
 		}
 	}
+
+	
+
+	
+	
 }
+
+
+//__host__ __device__
+//void scatterRay(
+//Ray& ray,
+//glm::vec3& color,
+//glm::vec3 intersect,
+//glm::vec3 normal,
+//const Material &m,
+//thrust::default_random_engine &rng)
+//{
+//	float precision_fix = 1e-4f;
+//
+//	// TODO: partial?
+//	if (m.hasReflective < 0.5f)
+//	{
+//		// Diffuse only
+//		ray.direction = calculateRandomDirectionInHemisphere(normal, rng);
+//		ray.origin = intersect + precision_fix * normal;
+//		color *= m.color;
+//	}
+//	else
+//	{
+//		// Reflection only
+//		ray.direction = glm::reflect(ray.direction, normal);
+//		ray.origin = intersect + precision_fix * normal;
+//		color *= m.color;
+//	}
+//}
