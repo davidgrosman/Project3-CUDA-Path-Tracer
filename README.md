@@ -9,7 +9,8 @@ Project 3 CUDA: Path Tracer
 ## Project description
 This Project's purpose was to gain some experience with writing Graphics code that would benefit as much as possible from CUDA as possible. In fact, a path tracer is a very useful type of application to run on Cuda since each ray processed by the application can be done in a separate thread. Furthermore, computations such as intersection-testing and pixel coloring are very intensive and are thus most usefully done on GPU. Furthermore, there is no memory bandwidth from CPU to GPU to pass on the pixel buffer as is usually the case in a CPU implementation.
 In this project, I have implemented several key features such as:
-1. Diffuse shading
+
+1. Diffuse shading.
 2. Caching Initial rays.
 3. Stream compaction on terminated paths during each iteration.
 4. Sort Rays by material type they are intersecting with.
