@@ -44,6 +44,18 @@ glm::vec3& normal, PRNG& rng) {
 }
 
 __host__ __device__
+glm::vec3 computeDiffuseDirectionToo(
+glm::vec3& normal, PRNG& rng) 
+{
+    const float s = rng.getNextVal01();
+    const float t = rng.getNextVal01();
+    float u = TWO_PI * s;
+	float v = sqrt(1 - t); // sin(theta)
+    
+    return glm::vec3(v * cos(u), sqrt(t), v * sin(u));
+}
+
+__host__ __device__
 glm::vec3 computeReflectiveDirection(
 const glm::vec3& normal, const glm::vec3& incident)
 {
